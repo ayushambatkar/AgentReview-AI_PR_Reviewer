@@ -15,6 +15,8 @@ async def github_webhook(request: Request):
     
     pull_request = PullRequestEvent.model_validate(await request.json())
     github = get_github_service()
+    if pull_request.action not in ["opened", "edited"]:
+        return {"ok": True}  # Only review on open or edit actions
 
     files = github.get_pr_files(
         repo_full_name=pull_request.repository.full_name,
