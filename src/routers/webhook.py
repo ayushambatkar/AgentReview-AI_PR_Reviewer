@@ -8,6 +8,11 @@ router = APIRouter()
 
 @router.post("/webhook")
 async def github_webhook(request: Request):
+    
+    github_event = request.headers.get("X-GitHub-Event")
+    if github_event != "pull_request":
+        return {"ok": True}  # Ignore non-PR events
+    
     pull_request = PullRequestEvent.model_validate(await request.json())
     github = get_github_service()
 
