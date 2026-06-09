@@ -8,23 +8,23 @@ class Installation(BaseModel):
     id: int
 
 
+class User(BaseModel):
+    login: str
+
+
 class PullRequest(BaseModel):
     number: int
     title: str
     body: str | None = None
-
-
-class User(BaseModel):
-    login: str
+    user: User
     
 
 class PullRequestEvent(BaseModel):
     action: str
+    number: int
     repository: Repository
     installation: Installation
-    number: int
     pull_request: PullRequest
-    user: User
     
 class PullRequestFile(BaseModel):
     filename: str
