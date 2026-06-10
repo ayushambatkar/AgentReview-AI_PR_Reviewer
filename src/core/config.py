@@ -13,16 +13,10 @@ class Settings(BaseSettings):
     langchain_tracing_v2: bool = True
     langchain_project: str = "Agent Review"
     dev_secret: str
+    github_private_key: str
 
     class Config:
         env_file = ".env"
 
 
 settings = Settings()
-
-os.environ.setdefault("LANGCHAIN_TRACING_V2", str(settings.langchain_tracing_v2).lower())
-os.environ.setdefault("LANGSMITH_TRACING_V2", str(settings.langchain_tracing_v2).lower())
-os.environ.setdefault("LANGCHAIN_API_KEY", settings.langchain_api_key)
-os.environ.setdefault("LANGSMITH_API_KEY", settings.langchain_api_key)
-os.environ.setdefault("LANGCHAIN_PROJECT", settings.langchain_project)
-os.environ.setdefault("LANGSMITH_PROJECT", settings.langchain_project)

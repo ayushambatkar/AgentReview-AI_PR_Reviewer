@@ -7,12 +7,12 @@ from src.models.pr_model import PullRequestFile
 
 
 class GitHubService:
-    def __init__(self, app_id: str, private_key_path: str):
+    def __init__(self, app_id: str, private_key: str):
         self.app_id = app_id
-        self.private_key_path = private_key_path
+        self.private_key = private_key
 
     def _generate_jwt(self):
-        private_key = Path(self.private_key_path).read_text()
+        private_key = self.private_key
 
         payload = {
             "iat": int(time.time()),
@@ -64,6 +64,7 @@ class GitHubService:
             )
 
         return "\n\n".join(diff_chunks)
+
     def create_pr_comment(
         self,
         repo_full_name: str,
@@ -72,9 +73,7 @@ class GitHubService:
         comment: str,
     ) -> None:
 
-        token = self.get_installation_access_token(
-            installation_id
-        )
+        token = self.get_installation_access_token(installation_id)
 
         response = httpx.post(
             f"https://api.github.com/repos/{repo_full_name}/issues/{pr_number}/comments",
@@ -82,9 +81,7 @@ class GitHubService:
                 "Authorization": f"Bearer {token}",
                 "Accept": "application/vnd.github+json",
             },
-            json={
-                "body": comment
-            },
+            json={"body": comment},
             timeout=30,
         )
 
