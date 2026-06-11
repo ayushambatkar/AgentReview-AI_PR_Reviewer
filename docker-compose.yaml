@@ -7,7 +7,7 @@ services:
       - .env
     depends_on:
       - redis
-  redis-server:
+  redis:
     image: redis:8.8-alpine
     ports:
       - "6379:6379"
