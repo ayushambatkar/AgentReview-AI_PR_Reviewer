@@ -20,4 +20,6 @@ RUN chmod +x start.sh
 COPY . .
 
 
-CMD ["./start.sh"]
+CMD redis-server --daemonize yes && \
+    python worker.py & \
+    uvicorn main:app --host 0.0.0.0 --port 8000
