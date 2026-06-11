@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     langchain_project: str = "Agent Review"
     dev_secret: str
     github_private_key: str
+    redis_host: str = "localhost"
+    redis_port: int = 6379
 
     class Config:
         env_file = ".env"
