@@ -3,7 +3,7 @@ import time
 from urllib import response
 import httpx
 import jwt
-from core.logging import logger
+from src.core.logging import logger
 from src.models.pr_model import PullRequestFile
 
 

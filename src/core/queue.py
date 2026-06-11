@@ -1,6 +1,6 @@
 from redis import Redis
 from rq import Queue
-from config import settings
+from src.core.config import settings
 
 redis_conn = Redis(host=settings.redis_host, port=settings.redis_port, db=0)
 
