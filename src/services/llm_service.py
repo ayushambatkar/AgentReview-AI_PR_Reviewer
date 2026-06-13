@@ -37,7 +37,8 @@ class LLMService:
 
             try:
                 response = m.invoke([HumanMessage(content=prompt)])
-
+                logger.info(f"Response type: {type(response)}")
+                logger.info(f"Response content: {repr(response.content)}")
                 logger.info(f"Response generated using {m.model_name}")
 
                 return str(response.content)

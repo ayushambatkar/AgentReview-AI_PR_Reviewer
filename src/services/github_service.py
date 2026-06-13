@@ -96,22 +96,31 @@ class GitHubService:
             )
             return DEFAULT_REVIEW_MODE
 
-    def build_pr_diff(self, files: list[PullRequestFile]) -> str:
-        diff_chunks: list[str] = []
+    def build_pr_diff(self, files):
+        MAX_TOTAL_CHARS = 8000
+
+        chunks = []
+        current = 0
 
         for file in files:
-            if file.patch:
-                diff_chunks.append(
-                    f"diff --git a/{file.filename} b/{file.filename}\n{file.patch}"
-                )
-                continue
 
-            diff_chunks.append(
+            patch = file.patch or ""
+
+            if len(patch) > 2000:
+                patch = patch[:2000] + "\n# PATCH TRUNCATED"
+
+            chunk = (
                 f"diff --git a/{file.filename} b/{file.filename}\n"
-                f"# No patch returned for {file.status} file"
+                f"{patch}"
             )
 
-        return "\n\n".join(diff_chunks)
+            if current + len(chunk) > MAX_TOTAL_CHARS:
+                break
+
+            chunks.append(chunk)
+            current += len(chunk)
+
+        return "\n\n".join(chunks)
 
     def create_review(
         self,

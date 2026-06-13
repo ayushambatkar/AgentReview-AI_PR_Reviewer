@@ -56,6 +56,16 @@ def process_pr_review(
         graph.invoke(state),
     )
 
+    logger.info(
+        "Review result counts | security=%s quality=%s db=%s test=%s inline=%s summary_len=%s",
+        len(result["security_issues"]),
+        len(result["quality_issues"]),
+        len(result["db_issues"]),
+        len(result["test_issues"]),
+        len(result["inline_comments"]),
+        len(result["summary"]),
+    )
+
     if not result["summary"] and not result["inline_comments"]:
         logger.info(f"No review generated for PR #{pr_number}")
         return
