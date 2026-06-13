@@ -1,13 +1,8 @@
 from src.graph.state import ReviewState
-from src.core.dependencies import get_llm_service
-from src.core.utils import extract_json_object
-
-llm_service = get_llm_service()
 
 
-def db_impact_node(state: ReviewState):
-
-    prompt = f"""
+def build_db_impact_prompt(state: ReviewState) -> str:
+    return f"""
 You are a DBA reviewing a pull request.
 
 Return exactly one JSON object and nothing else.
@@ -50,10 +45,3 @@ If there are no findings, return exactly:
 Diff:
 {state["diff"]}
 """
-
-    data = extract_json_object(llm_service.invoke(prompt))
-
-    return {
-        "db_issues": data.get("issues", []),
-        "inline_comments": data.get("inline_comments", []),
-    }

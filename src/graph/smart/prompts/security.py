@@ -1,17 +1,8 @@
-import json
-
-
-from src.core.logging import logger
-from src.core.dependencies import get_llm_service
-from src.core.utils import extract_json_object
 from src.graph.state import ReviewState
 
-llm = get_llm_service()
 
-
-def security_node(state: ReviewState):
-
-    prompt = f"""
+def build_security_prompt(state: ReviewState) -> str:
+    return f"""
 You are a security code reviewer.
 
 Return exactly one JSON object and nothing else.
@@ -52,15 +43,5 @@ If there are no findings, return exactly:
 }}
 
 Git Diff:
-
 {state["diff"]}
 """
-
-    response = llm.invoke(prompt)
-    logger.info(f"Received security node response: {response}")
-    data = extract_json_object(response)
-    logger.info(f"Parsed security node response: {data}")
-    return {
-        "security_issues": data.get("issues", []),
-        "inline_comments": data.get("inline_comments", []),
-    }

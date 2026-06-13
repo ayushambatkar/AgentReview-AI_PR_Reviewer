@@ -1,7 +1,9 @@
+import base64
 import time
 import httpx
 import jwt
 from src.core.logging import logger
+from src.core.review_mode import DEFAULT_REVIEW_MODE, parse_review_mode
 from src.core.utils import build_review_comments
 from src.models.pr_model import PullRequestFile
 from src.models.pr_model import PullRequest
@@ -51,7 +53,9 @@ class GitHubService:
         response.raise_for_status()
         return [PullRequestFile.model_validate(item) for item in response.json()]
 
-    def get_pull_request(self, repo_full_name: str, pr_number: int, installation_id: int) -> PullRequest:
+    def get_pull_request(
+        self, repo_full_name: str, pr_number: int, installation_id: int
+    ) -> PullRequest:
         access_token = self.get_installation_access_token(installation_id)
 
         response = httpx.get(
@@ -62,6 +66,35 @@ class GitHubService:
         logger.info(f"GitHub pull request API response status: {response.status_code}")
         response.raise_for_status()
         return PullRequest.model_validate(response.json())
+
+    def get_review_mode(self, repo_full_name: str, installation_id: int) -> str:
+        access_token = self.get_installation_access_token(installation_id)
+
+        response = httpx.get(
+            f"https://api.github.com/repos/{repo_full_name}/contents/.agentreview.yml",
+            headers={
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/vnd.github+json",
+            },
+            timeout=30,
+        )
+
+        if response.status_code == 404:
+            logger.info("No .agentreview.yml found in repository; using fast mode")
+            return DEFAULT_REVIEW_MODE
+
+        response.raise_for_status()
+        payload = response.json()
+
+        try:
+            encoded_content = payload["content"].replace("\n", "")
+            decoded_content = base64.b64decode(encoded_content).decode("utf-8")
+            return parse_review_mode(decoded_content)
+        except Exception as exc:
+            logger.warning(
+                f"Failed to parse .agentreview.yml from repository; using fast mode: {exc}"
+            )
+            return DEFAULT_REVIEW_MODE
 
     def build_pr_diff(self, files: list[PullRequestFile]) -> str:
         diff_chunks: list[str] = []
@@ -86,7 +119,7 @@ class GitHubService:
         pr_number: int,
         summary: str,
         inline_comments: list,
-        installation_id: int
+        installation_id: int,
     ) -> None:
         token = self.get_installation_access_token(installation_id)
         inline_comments = build_review_comments(inline_comments)
@@ -106,4 +139,3 @@ class GitHubService:
         logger.info(f"GitHub review API response status: {response.status_code}")
         logger.info(f"GitHub review API response text: {response.text}")
         response.raise_for_status()
-        

@@ -23,12 +23,14 @@ def format_issue_section(items: list[object]) -> str:
 
 def aggregator_node(state: ReviewState):
 
-    has_issues = any([
-        state["security_issues"],
-        state["quality_issues"],
-        state["db_issues"],
-        state["test_issues"],
-    ])
+    has_issues = any(
+        [
+            state["security_issues"],
+            state["quality_issues"],
+            state["db_issues"],
+            state["test_issues"],
+        ]
+    )
 
     if not has_issues:
         return {
