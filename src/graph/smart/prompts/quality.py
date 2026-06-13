@@ -1,15 +1,8 @@
-import json
-
 from src.graph.state import ReviewState
-from src.core.dependencies import get_llm_service
-from src.core.utils import extract_json_object
-
-llm_service = get_llm_service()
 
 
-def quality_node(state: ReviewState):
-
-    prompt = f"""
+def build_quality_prompt(state: ReviewState) -> str:
+    return f"""
 You are a senior software engineer reviewing a pull request.
 
 Return exactly one JSON object and nothing else.
@@ -51,12 +44,3 @@ PR Description:
 Diff:
 {state["diff"]}
 """
-
-    response = llm_service.invoke(prompt)
-
-    data = extract_json_object(response)
-
-    return {
-    "quality_issues": data.get("issues", []),
-    "inline_comments": data.get("inline_comments", []),
-    }

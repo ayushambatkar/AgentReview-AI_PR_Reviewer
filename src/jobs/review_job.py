@@ -5,7 +5,7 @@ from src.core.dependencies import (
 )
 from src.core.logging import logger
 from src.graph.state import ReviewState
-from src.graph.workflow import graph
+from src.graph.workflow import get_graph
 
 
 def process_pr_review(
@@ -14,6 +14,10 @@ def process_pr_review(
     installation_id: int,
 ):
     github = get_github_service()
+    review_mode = github.get_review_mode(repo_full_name, installation_id)
+    graph = get_graph(review_mode)
+
+    logger.info(f"Using review mode: {review_mode}")
 
     pull_request = github.get_pull_request(
         repo_full_name,
@@ -29,9 +33,7 @@ def process_pr_review(
 
     diff = github.build_pr_diff(files)
 
-    logger.info(
-        f"Built PR diff with length: {len(diff)} characters"
-    )
+    logger.info(f"Built PR diff with length: {len(diff)} characters")
 
     state: ReviewState = {
         "pr_number": pr_number,
@@ -53,9 +55,9 @@ def process_pr_review(
         ReviewState,
         graph.invoke(state),
     )
-    
+
     if not result["summary"] and not result["inline_comments"]:
-        logger.info("No issues found in the PR review.")
+        logger.info(f"No review generated for PR #{pr_number}")
         return
 
     github.create_review(
@@ -66,6 +68,4 @@ def process_pr_review(
         inline_comments=result["inline_comments"],
     )
 
-    logger.info(
-        f"Posted review with {len(result['inline_comments'])} inline comments"
-    )
+    logger.info(f"Posted review with {len(result['inline_comments'])} inline comments")

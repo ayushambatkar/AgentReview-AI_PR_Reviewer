@@ -1,11 +1,8 @@
 from src.graph.state import ReviewState
-from src.services.llm_service import llm_service
-from src.core.utils import extract_json_object
 
 
-def test_coverage_node(state: ReviewState):
-
-    prompt = f"""
+def build_test_coverage_prompt(state: ReviewState) -> str:
+    return f"""
 You are a test engineer.
 
 Return exactly one JSON object and nothing else.
@@ -47,10 +44,3 @@ If there are no findings, return exactly:
 Diff:
 {state["diff"]}
 """
-
-    data = extract_json_object(llm_service.invoke(prompt))
-
-    return {
-        "test_issues": data.get("issues", []),
-        "inline_comments": data.get("inline_comments", []),
-    }
