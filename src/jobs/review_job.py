@@ -15,6 +15,12 @@ def process_pr_review(
 ):
     github = get_github_service()
 
+    pull_request = github.get_pull_request(
+        repo_full_name,
+        pr_number,
+        installation_id,
+    )
+
     files = github.get_pr_files(
         repo_full_name,
         pr_number,
@@ -38,8 +44,8 @@ def process_pr_review(
         "db_issues": [],
         "test_issues": [],
         "inline_comments": [],
-        "title": "",
-        "description": "",
+        "title": pull_request.title,
+        "description": pull_request.body or "",
         "summary": "",
     }
 
@@ -47,6 +53,10 @@ def process_pr_review(
         ReviewState,
         graph.invoke(state),
     )
+    
+    if not result["summary"] and not result["inline_comments"]:
+        logger.info("No issues found in the PR review.")
+        return
 
     github.create_review(
         repo_full_name=repo_full_name,

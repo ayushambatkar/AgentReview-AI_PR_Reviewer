@@ -4,6 +4,7 @@ import jwt
 from src.core.logging import logger
 from src.core.utils import build_review_comments
 from src.models.pr_model import PullRequestFile
+from src.models.pr_model import PullRequest
 
 
 class GitHubService:
@@ -49,6 +50,18 @@ class GitHubService:
         logger.info(f"GitHub files API response status: {response.status_code}")
         response.raise_for_status()
         return [PullRequestFile.model_validate(item) for item in response.json()]
+
+    def get_pull_request(self, repo_full_name: str, pr_number: int, installation_id: int) -> PullRequest:
+        access_token = self.get_installation_access_token(installation_id)
+
+        response = httpx.get(
+            f"https://api.github.com/repos/{repo_full_name}/pulls/{pr_number}",
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=30,
+        )
+        logger.info(f"GitHub pull request API response status: {response.status_code}")
+        response.raise_for_status()
+        return PullRequest.model_validate(response.json())
 
     def build_pr_diff(self, files: list[PullRequestFile]) -> str:
         diff_chunks: list[str] = []

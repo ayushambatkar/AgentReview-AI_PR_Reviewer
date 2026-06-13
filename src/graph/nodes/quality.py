@@ -2,6 +2,7 @@ import json
 
 from src.graph.state import ReviewState
 from src.core.dependencies import get_llm_service
+from src.core.utils import extract_json_object
 
 llm_service = get_llm_service()
 
@@ -11,21 +12,20 @@ def quality_node(state: ReviewState):
     prompt = f"""
 You are a senior software engineer reviewing a pull request.
 
-Focus ONLY on:
-- Maintainability
-- Code smells
-- Excessive complexity
-- Poor naming
-- Duplication
-- Readability
+Return exactly one JSON object and nothing else.
 
-Return ONLY valid JSON:
+Hard rules:
+- Output must be valid JSON.
+- Do not wrap the response in markdown or code fences.
+- Do not add prose, explanations, headings, or bullet points.
+- Do not include trailing commas.
+- Do not omit required keys.
+- If there are no findings, return empty arrays.
+
+Schema:
 
 {{
-  "issues": [
-    "issue 1",
-    "issue 2"
-  ],
+  "issues": ["issue 1", "issue 2"],
   "inline_comments": [
     {{
       "file": "example.py",
@@ -35,7 +35,7 @@ Return ONLY valid JSON:
   ]
 }}
 
-If nothing is found:
+If there are no findings, return exactly:
 
 {{
   "issues": [],
@@ -54,9 +54,9 @@ Diff:
 
     response = llm_service.invoke(prompt)
 
-    data = json.loads(response)
+    data = extract_json_object(response)
 
     return {
-        "quality_issues": data["issues"],
-        "inline_comments": data["inline_comments"],
+    "quality_issues": data.get("issues", []),
+    "inline_comments": data.get("inline_comments", []),
     }

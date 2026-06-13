@@ -23,7 +23,8 @@ class Settings(BaseSettings):
     redis_port: int = 6379
 
     class Config:
-        env_file = ".env.prod"
+        env_file = env_files.get(os.getenv("ENVIRONMENT", "dev"), ".env")
 
 
 settings = Settings()
+print(f"Loaded settings for environment: {os.getenv('ENVIRONMENT', 'dev')}")
