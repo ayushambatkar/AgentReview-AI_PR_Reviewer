@@ -7,20 +7,13 @@ from src.services.llm_service import llm_service
 
 def build_fast_review_prompt(state: ReviewState) -> str:
     review_payload = {
-        "pr_number": state["pr_number"],
-        "repo_name": state["repo_name"],
-        "files_changed": state["files_changed"],
-        "diff": state["diff"],
-        "routing_flags": state["routing_flags"],
-        "security_issues": state["security_issues"],
-        "quality_issues": state["quality_issues"],
-        "db_issues": state["db_issues"],
-        "test_issues": state["test_issues"],
-        "inline_comments": state["inline_comments"],
-        "summary": state["summary"],
-        "title": state["title"],
-        "description": state["description"],
-    }
+    "pr_number": state["pr_number"],
+    "repo_name": state["repo_name"],
+    "files_changed": state["files_changed"],
+    "diff": state["diff"],
+    "title": state["title"],
+    "description": state["description"],
+}
 
     return f"""
 You are a pull request reviewer.
@@ -34,6 +27,7 @@ Hard rules:
 - Do not include trailing commas.
 - Do not add keys that are not listed in the schema.
 - If there are no findings, return empty arrays and an empty summary.
+- Be conservative but not silent: if you see a plausible issue, include it with low severity.
 
 Input JSON:
 {json.dumps(review_payload, ensure_ascii=False, indent=2)}
@@ -73,7 +67,7 @@ If there are no findings, return exactly:
 
 def fast_review_node(state: ReviewState):
     prompt = build_fast_review_prompt(state)
-    data = extract_json_object(llm_service.invoke(prompt, use_fast_model=True))
+    data = extract_json_object(llm_service.invoke(prompt))
 
     return {
         "security_issues": data.get("security_issues", []),
