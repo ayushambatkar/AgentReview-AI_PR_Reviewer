@@ -3,6 +3,11 @@ import os
 from pydantic_settings import BaseSettings
 
 
+env_files = {
+    "dev": ".env",
+    "prod": ".env.prod",
+}
+
 class Settings(BaseSettings):
     github_app_id: str
     github_private_key_path: str
@@ -18,7 +23,8 @@ class Settings(BaseSettings):
     redis_port: int = 6379
 
     class Config:
-        env_file = ".env"
+        env_file = env_files.get(os.getenv("ENVIRONMENT", "dev"), ".env")
 
 
 settings = Settings()
+print(f"Loaded settings for environment: {os.getenv('ENVIRONMENT', 'dev')}")

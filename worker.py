@@ -1,8 +1,17 @@
-from rq import Worker, Queue
-from redis import Redis
-from src.core.queue import review_queue, redis_conn
+import os
+
+from rq import SimpleWorker, Worker
+
+from src.core.queue import redis_conn, review_queue
 
 
-worker = Worker([review_queue], connection=redis_conn)
+def create_worker():
+	if os.name == "nt":
+		return SimpleWorker([review_queue], connection=redis_conn)
 
-worker.work()
+	return Worker([review_queue], connection=redis_conn)
+
+
+if __name__ == "__main__":
+	worker = create_worker()
+	worker.work()
